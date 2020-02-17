@@ -12,11 +12,10 @@ app.use(morgan('dev'));
 app.use(express.json());
 
 //Routes
-app.get('/carpeta', (req, res) => {
-    console.log(req)
-    const dir = req.query.dir
-    let directoryPath = path.join(__dirname+'/root/'+dir)
-    /*exec('ls -l', {cwd: directoryPath}, (error, stdout, stderr) => {
+app.get("/carpeta", (req, res) => {
+    const direccion = req.query.dir
+    let directorioPath = path.join(__dirname+'/root/'+direccion)
+    exec('ls -l', {cwd: directorioPath}, (error, stdout, stderr) => {
         if (error) {
             console.log(`error: ${error.message}`);
             return;
@@ -25,13 +24,46 @@ app.get('/carpeta', (req, res) => {
             console.log(`stderr: ${stderr}`);
             return;
         }
-        let filesDirectorys = stdout.split("\n")
-        console.log(filesDirectorys)
-        
-        res.json()
-    });*/
+        let informacionDirectorios = stdout.split("\n")
+        informacionDirectorios = informacionDirectorios.slice(1, informacionDirectorios.length-1)
+        let resultado = []
+        informacionDirectorios.map( elemento =>{
+            let informacionDirectorio = elemento.split(" ")
+            resultado.push({
+                permissions: informacionDirectorio[0].split(''),
+                owner:  informacionDirectorio[2],
+                fileDirName: informacionDirectorio[informacionDirectorio.length-1]
+            })
+        })
+        res.json(resultado)
+    });
     
 })
+
+app.post("/api/guardarCarpetaOArchivo", (req, res) => {
+    const direccion = req.body.dir
+    const tipo = req.body.type
+    const nombre = req.body.name
+    let directorioPath = path.join(__dirname+'/root/'+direccion)
+    let comando = 'mkdir '+ nombre
+    if(tipo =="Archivo"){
+        comando = 'touch '+ nombre
+    }
+    exec(comando, {cwd: directorioPath}, (error, stdout, stderr) => {
+        if (error) {
+            console.log(`error: ${error.message}`);
+            return;
+        }
+        if (stderr) {
+            console.log(`stderr: ${stderr}`);
+            return;
+        }
+        console.log(`stdout: ${stdout}`);
+    });
+    
+    res.send('/')
+})
+
 
 
 
